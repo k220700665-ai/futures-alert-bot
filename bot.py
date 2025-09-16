@@ -7,7 +7,7 @@ import ta
 import time
 import logging
 import requests
-import OS
+import os
 
 # === CONFIGURATION ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -266,4 +266,5 @@ async def main():
 # === Run the bot ===
 # Uncomment the line below to run in VSCode
 asyncio.run(main())
+
 
