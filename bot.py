@@ -36,21 +36,28 @@ def send_telegram_alert(bot_token, chat_id, message):
 # === Fetch Hot Perpetual Pairs ===
 def get_hot_perpetual_symbols(limit=MAX_PAIRS):
     url = "https://fapi.binance.com/fapi/v1/ticker/24hr"
-    response = requests.get(url)
-    data = response.json()
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+    except Exception as e:
+        logging.error(f"Error fetching Binance data: {e}")
+        return []
 
-    # Sort by volume
+    if not isinstance(data, list):
+        logging.error("Unexpected response format from Binance API")
+        return []
+
+    # Proceed with sorting
     sorted_by_volume = sorted(data, key=lambda x: float(x['quoteVolume']), reverse=True)
     top_volume = [d['symbol'].lower() for d in sorted_by_volume if d['symbol'].endswith('USDT')][:limit]
 
-    # Sort by % change
     sorted_by_gain = sorted(data, key=lambda x: float(x['priceChangePercent']), reverse=True)
     top_gainers = [d['symbol'].lower() for d in sorted_by_gain if d['symbol'].endswith('USDT')][:limit]
 
     sorted_by_loss = sorted(data, key=lambda x: float(x['priceChangePercent']))
     top_losers = [d['symbol'].lower() for d in sorted_by_loss if d['symbol'].endswith('USDT')][:limit]
 
-    # Combine and deduplicate
     combined = list(set(top_volume + top_gainers + top_losers))
     return combined
 
@@ -266,5 +273,6 @@ async def main():
 # === Run the bot ===
 # Uncomment the line below to run in VSCode
 asyncio.run(main())
+
 
 
