@@ -16,7 +16,8 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11.6'  # ✅ Use full version to avoid ambiguity
+        python-version: '3.11.6'  # ✅ Use full version
+        check-latest: true        # ✅ Force latest patch of 3.11.6
 
     - name: Install dependencies
       run: |
