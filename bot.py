@@ -7,10 +7,11 @@ import ta
 import time
 import logging
 import requests
+import OS
 
 # === CONFIGURATION ===
-BOT_TOKEN = "7820296398:AAE3eRYOnAGw4R18SS7vMcMOkueXIfSnR54"
-CHAT_ID = "1822088177"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
 LOG_FILE = "hot_stream_signals.log"
 REFRESH_INTERVAL = 6 * 60 * 60  # 6 hours in seconds
 MAX_PAIRS = 50
@@ -265,3 +266,4 @@ async def main():
 # === Run the bot ===
 # Uncomment the line below to run in VSCode
 asyncio.run(main())
+
