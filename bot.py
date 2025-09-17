@@ -1,3 +1,4 @@
+print("Script file loaded.")
 try:
     print("Bot script started.")
 
@@ -289,6 +290,7 @@ async def run_with_retry(signal_cache, max_iterations=24):
 if __name__ == "__main__":
     signal_cache = {}
     asyncio.run(run_with_retry(signal_cache, max_iterations=24))
+
 
 
 
