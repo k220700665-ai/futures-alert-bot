@@ -65,6 +65,11 @@ def get_hot_perpetual_symbols(limit=MAX_PAIRS):
         response = requests.get(url)
         response.raise_for_status()
         data = response.json()
+        print(f"Raw Binance data length: {len(data)}")
+        if data:
+            print(f"Sample entry: {data[0]}")
+        else:
+            print("No data received from Binance.")
     except Exception as e:
         logging.error(f"Error fetching Binance data: {e}")
         return []
@@ -293,6 +298,7 @@ async def run_bot():
 # === Run the bot ===
 if __name__ == "__main__":
     asyncio.run(run_bot())
+
 
 
 
