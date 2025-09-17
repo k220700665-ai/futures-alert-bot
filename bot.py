@@ -226,7 +226,10 @@ async def handle_stream(symbol, signal_cache):
                     f"Entry Price: {entry_price:.4f}\n"
                     f"Current Price: {df.iloc[-1]['close']:.4f}\n"
                     f"TP: {tp:.4f} \nSL: {sl:.4f}\n"
-                   telegram_alert(BOT_TOKEN, CHAT_ID, alert_msg)
+                    f"Reason: {reason}"
+                )
+
+                send_telegram_alert(BOT_TOKEN, CHAT_ID, alert_msg)
                 signal_cache[symbol] = signal
 
 # === Main Async Runner with Retry Logic ===
@@ -251,6 +254,7 @@ async def run_with_retry(signal_cache, max_iterations=24):
 if __name__ == "__main__":
     signal_cache = {}
     asyncio.run(run_with_retry(signal_cache, max_iterations=24))
+
 
 
 
