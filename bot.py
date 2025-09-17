@@ -45,6 +45,8 @@ async def connect_with_retry(url, retries=5, delay=5):
 
 # === Fetch Hot Perpetual Pairs ===
 def get_hot_perpetual_symbols(limit=MAX_PAIRS):
+    print("Fetching hot perpetual symbols from Binance...")
+
     url = "https://fapi.binance.com/fapi/v1/ticker/24hr"
     try:
         response = requests.get(url)
@@ -53,17 +55,25 @@ def get_hot_perpetual_symbols(limit=MAX_PAIRS):
     except Exception as e:
         logging.error(f"Error fetching Binance data: {e}")
         return []
+
     if not isinstance(data, list):
         logging.error("Unexpected response format from Binance API")
         return []
+
     sorted_by_volume = sorted(data, key=lambda x: float(x['quoteVolume']), reverse=True)
     top_volume = [d['symbol'].lower() for d in sorted_by_volume if d['symbol'].endswith('USDT')][:limit]
+
     sorted_by_gain = sorted(data, key=lambda x: float(x['priceChangePercent']), reverse=True)
     top_gainers = [d['symbol'].lower() for d in sorted_by_gain if d['symbol'].endswith('USDT')][:limit]
+
     sorted_by_loss = sorted(data, key=lambda x: float(x['priceChangePercent']))
     top_losers = [d['symbol'].lower() for d in sorted_by_loss if d['symbol'].endswith('USDT')][:limit]
+
     combined = list(set(top_volume + top_gainers + top_losers))
+
+    print(f"Fetched {len(combined)} symbols.")
     return combined
+
 # === Fetch Historical Candles ===
 def fetch_historical_klines(symbol, interval='1m', limit=100):
     url = "https://fapi.binance.com/fapi/v1/klines"
@@ -241,26 +251,34 @@ async def handle_stream(symbol, signal_cache):
 
 # === Main Async Runner with Retry Logic ===
 async def run_with_retry(signal_cache, max_iterations=24):
+    print("Starting bot run...")
+
     iteration = 0
     while iteration < max_iterations:
+        print(f"Starting iteration {iteration + 1}...")
+
         hot_symbols = get_hot_perpetual_symbols()
         print(f"Streaming hot pairs: {hot_symbols}")
+
         MAX_STREAMS = 10
         tasks = []
         for i, symbol in enumerate(hot_symbols):
             if i >= MAX_STREAMS:
                 break
             tasks.append(handle_stream(symbol, signal_cache))
+
         await asyncio.gather(*tasks)
         iteration += 1
         print(f"Iteration {iteration} done. Sleeping for {REFRESH_INTERVAL}s ...")
         await asyncio.sleep(REFRESH_INTERVAL)
+
     print("One day run complete, exiting.")
 
 # === Run the bot ===
 if __name__ == "__main__":
     signal_cache = {}
     asyncio.run(run_with_retry(signal_cache, max_iterations=24))
+
 
 
 
