@@ -287,17 +287,25 @@ async def symbol_refresher(active_symbols):
         print(f"Updated active symbols: {active_symbols}")
         await asyncio.sleep(REFRESH_INTERVAL)
 
+
 async def run_bot():
     signal_cache = {}
     active_symbols = set()
-    await asyncio.gather(
-        stream_manager(signal_cache, active_symbols),
-        symbol_refresher(active_symbols)
-    )
+    try:
+        await asyncio.wait_for(
+            asyncio.gather(
+                stream_manager(signal_cache, active_symbols),
+                symbol_refresher(active_symbols)
+            ),
+            timeout=3540  # 59 minutes
+        )
+    except asyncio.TimeoutError:
+        print("Bot run timed out after 59 minutes. Exiting.")
 
 # === Run the bot ===
 if __name__ == "__main__":
     asyncio.run(run_bot())
+
 
 
 
