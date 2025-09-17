@@ -24,8 +24,13 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
+    - name: List repo files
+      run: ls -la
+
     - name: Run bot
-      run: python bot.py
+      run: |
+        echo "Starting bot script..."
+        python bot.py
       env:
         BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         CHAT_ID: ${{ secrets.CHAT_ID }}
