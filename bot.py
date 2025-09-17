@@ -70,22 +70,33 @@ def fetch_historical_klines(symbol, interval='1m', limit=100):
     params = {'symbol': symbol.upper(), 'interval': interval, 'limit': limit}
     response = requests.get(url, params=params)
     data = response.json()
-    df = pd.DataFrame([{
-        'open': float(k[1]),
-        'high': float(k[2]),
-        'low': float(k[3]),
-        'close': float(k[4]),
-        'volume': float(k[5])
-    Timeframe Candles for ATR ===
+    df = pd.DataFrame([
+        {
+            'open': float(k[1]),
+            'high': float(k[2]),
+            'low': float(k[3]),
+            'close': float(k[4]),
+            'volume': float(k[5])
+        }
+        for k in data
+    ])
+    return df
+
 def fetch_higher_timeframe_klines(symbol, interval='1h', limit=50):
     url = "https://fapi.binance.com/fapi/v1/klines"
     params = {'symbol': symbol.upper(), 'interval': interval, 'limit': limit}
     response = requests.get(url, params=params)
     data = response.json()
-    df = pd.DataFrame([{
-        'open': float(k[1]),
-        'high': float(k[2]),
-        in data])
+    df = pd.DataFrame([
+        {
+            'open': float(k[1]),
+            'high': float(k[2]),
+            'low': float(k[3]),
+            'close': float(k[4]),
+            'volume': float(k[5])
+        }
+        for k in data
+    ])
     return df
 
 # === Fetch Funding Rate ===
@@ -229,6 +240,7 @@ async def run_with_retry(signal_cache, max_iterations=24):
 if __name__ == "__main__":
     signal_cache = {}
     asyncio.run(run_with_retry(signal_cache, max_iterations=24))
+
 
 
 
