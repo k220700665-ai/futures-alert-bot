@@ -191,21 +191,22 @@ def evaluate_signal(df, funding_rate, symbol):
 async def handle_stream(symbol, signal_cache):
     url = f"wss://fstream.binance.com/ws/{symbol}@kline_1m"
 
-    # Fetch historical candles to initialize df
+    print(f"[{symbol}] Fetching historical candles...")
     df = fetch_historical_klines(symbol)
+    print(f"[{symbol}] Historical candles fetched. Connecting to WebSocket...")
 
-    print(f"Connecting to WebSocket for {symbol}...")
     ws = await connect_with_retry(url)
-    print(f"Connected to WebSocket for {symbol}")
+    print(f"[{symbol}] Connected to WebSocket.")
 
     async with ws:
         while True:
             try:
                 msg = await asyncio.wait_for(ws.recv(), timeout=30)
             except asyncio.TimeoutError:
-                logging.warning(f"Timeout while waiting for message from {symbol}")
+                logging.warning(f"[{symbol}] Timeout while waiting for WebSocket message.")
                 continue
 
+            print(f"[{symbol}] Received WebSocket message.")
             data = json.loads(msg)
             kline = data['k']
             new_row = {
@@ -215,10 +216,15 @@ async def handle_stream(symbol, signal_cache):
                 'close': float(kline['c']),
                 'volume': float(kline['v'])
             }
+
             df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True).tail(100)
+            print(f"[{symbol}] Updated dataframe with latest kline.")
 
             funding_rate = fetch_latest_funding_rate(symbol)
+            print(f"[{symbol}] Funding rate fetched: {funding_rate}")
+
             signal, entry_price, reason, tp, sl = evaluate_signal(df, funding_rate, symbol)
+            print(f"[{symbol}] Signal evaluated: {signal}")
 
             if signal in ["LONG", "SHORT"] and signal_cache.get(symbol) != signal:
                 alert_msg = (
@@ -228,9 +234,10 @@ async def handle_stream(symbol, signal_cache):
                     f"TP: {tp:.4f} \nSL: {sl:.4f}\n"
                     f"Reason: {reason}"
                 )
-
+                print(f"[{symbol}] Sending Telegram alert...")
                 send_telegram_alert(BOT_TOKEN, CHAT_ID, alert_msg)
                 signal_cache[symbol] = signal
+                print(f"[{symbol}] Signal cached.")
 
 # === Main Async Runner with Retry Logic ===
 async def run_with_retry(signal_cache, max_iterations=24):
@@ -254,6 +261,7 @@ async def run_with_retry(signal_cache, max_iterations=24):
 if __name__ == "__main__":
     signal_cache = {}
     asyncio.run(run_with_retry(signal_cache, max_iterations=24))
+
 
 
 
