@@ -205,14 +205,31 @@ def fetch_historical_klines(symbol, interval='1m', limit=100):
 # === Retry Logic ===
 import websockets
 
-async def connect_with_retry(url, retries=5, delay=5):
-    for attempt in range(retries):
-        try:
-            return await websockets.connect(url, open_timeout=20)
-        except Exception as e:
-            print(f"WebSocket connection failed (attempt {attempt+1}): {e}")
-            await asyncio.sleep(delay)
-    raise ConnectionError(f"Failed to connect to {url} after {retries} attempts.")
+async def main(signalcache, max_iterations=4):
+    iteration = 0
+    while iteration < max_iterations:
+        hotsymbols = gethotperpetualsymbols(limit=MAXPAIRS)
+        print(f"Streaming hot pairs {hotsymbols}")
+        MAXSTREAMS = 10  # concurrency limit, adjust if needed
+
+        tasks = []
+        for i, symbol in enumerate(hotsymbols):
+            if i >= MAXSTREAMS:
+                break
+            tasks.append(handlestreamsymbol(symbol, signalcache))
+
+        await asyncio.gather(*tasks)
+        iteration += 1
+
+        print(f"Iteration {iteration} done. Sleeping for {REFRESHINTERVAL}s ...")
+        await asyncio.sleep(REFRESHINTERVAL)
+
+    print("Max iterations reached, exiting main loop.")
+
+if __name__ == "__main__":
+    signalcache = {}
+    asyncio.run(main(signalcache, max_iterations=4))  # Adjust iteration count as needed
+
 
 # === WebSocket Handler ===
 async def handle_stream(symbol, signal_cache):
@@ -273,6 +290,7 @@ async def main():
 # === Run the bot ===
 # Uncomment the line below to run in VSCode
 asyncio.run(main())
+
 
 
 
