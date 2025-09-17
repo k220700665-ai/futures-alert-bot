@@ -9,6 +9,7 @@ import logging
 import requests
 import os
 
+print("Bot script started.")
 # === CONFIGURATION ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
@@ -278,6 +279,7 @@ async def run_with_retry(signal_cache, max_iterations=24):
 if __name__ == "__main__":
     signal_cache = {}
     asyncio.run(run_with_retry(signal_cache, max_iterations=24))
+
 
 
 
