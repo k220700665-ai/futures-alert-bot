@@ -190,11 +190,22 @@ def evaluate_signal(df, funding_rate, symbol):
 # === WebSocket Handler ===
 async def handle_stream(symbol, signal_cache):
     url = f"wss://fstream.binance.com/ws/{symbol}@kline_1m"
+
+    # Fetch historical candles to initialize df
     df = fetch_historical_klines(symbol)
+
+    print(f"Connecting to WebSocket for {symbol}...")
     ws = await connect_with_retry(url)
+    print(f"Connected to WebSocket for {symbol}")
+
     async with ws:
         while True:
-            msg = await ws.recv()
+            try:
+                msg = await asyncio.wait_for(ws.recv(), timeout=30)
+            except asyncio.TimeoutError:
+                logging.warning(f"Timeout while waiting for message from {symbol}")
+                continue
+
             data = json.loads(msg)
             kline = data['k']
             new_row = {
@@ -205,17 +216,17 @@ async def handle_stream(symbol, signal_cache):
                 'volume': float(kline['v'])
             }
             df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True).tail(100)
+
             funding_rate = fetch_latest_funding_rate(symbol)
             signal, entry_price, reason, tp, sl = evaluate_signal(df, funding_rate, symbol)
+
             if signal in ["LONG", "SHORT"] and signal_cache.get(symbol) != signal:
                 alert_msg = (
                     f"📢 {symbol.upper()} Signal: {signal}\n"
                     f"Entry Price: {entry_price:.4f}\n"
                     f"Current Price: {df.iloc[-1]['close']:.4f}\n"
                     f"TP: {tp:.4f} \nSL: {sl:.4f}\n"
-                    f"Reason: {reason}"
-                )
-                send_telegram_alert(BOT_TOKEN, CHAT_ID, alert_msg)
+                   telegram_alert(BOT_TOKEN, CHAT_ID, alert_msg)
                 signal_cache[symbol] = signal
 
 # === Main Async Runner with Retry Logic ===
@@ -240,6 +251,7 @@ async def run_with_retry(signal_cache, max_iterations=24):
 if __name__ == "__main__":
     signal_cache = {}
     asyncio.run(run_with_retry(signal_cache, max_iterations=24))
+
 
 
 
