@@ -12,6 +12,7 @@ try:
     import logging
     import requests
     import os
+    from datetime import datetime
 
     # === CONFIGURATION ===
     BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -253,6 +254,7 @@ async def handle_stream(symbol, signal_cache):
                     f"📢 {symbol.upper()} Signal: {signal}\n"
                     f"Entry Price: {entry_price:.4f}\n"
                     f"Current Price: {df.iloc[-1]['close']:.4f}\n"
+                    f"Timestamp: {now_str}\n"
                     f"TP: {tp:.4f} \nSL: {sl:.4f}\n"
                     f"Reason: {reason}"
                 )
@@ -290,6 +292,7 @@ async def run_with_retry(signal_cache, max_iterations=24):
 if __name__ == "__main__":
     signal_cache = {}
     asyncio.run(run_with_retry(signal_cache, max_iterations=24))
+
 
 
 
