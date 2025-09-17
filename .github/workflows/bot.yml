@@ -16,8 +16,8 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.14'  # ✅ Use full version
-        check-latest: true        # ✅ Force latest patch of 3.14
+        python-version: '3.12'  # ✅ Use full version
+        check-latest: true        # ✅ Force latest patch of 3.12
 
     - name: Install dependencies
       run: |
