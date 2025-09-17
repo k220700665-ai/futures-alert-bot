@@ -1,28 +1,38 @@
-import asyncio
-import websockets
-import json
-import pandas as pd
-import numpy as np
-import ta
-import time
-import logging
-import requests
-import os
+try:
+    print("Bot script started.")
 
-print("Bot script started.")
-# === CONFIGURATION ===
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
-LOG_FILE = "hot_stream_signals.log"
-REFRESH_INTERVAL = 3600  # 1 hour in seconds
-MAX_PAIRS = 50
+    import asyncio
+    import websockets
+    import json
+    import pandas as pd
+    import numpy as np
+    import ta
+    import time
+    import logging
+    import requests
+    import os
 
-# === Setup Logging ===
-logging.basicConfig(
-    filename=LOG_FILE,
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
-)
+    # === CONFIGURATION ===
+    BOT_TOKEN = os.getenv("BOT_TOKEN")
+    CHAT_ID = os.getenv("CHAT_ID")
+    LOG_FILE = "hot_stream_signals.log"
+    REFRESH_INTERVAL = 3600  # 1 hour in seconds
+    MAX_PAIRS = 50
+
+    if not BOT_TOKEN or not CHAT_ID:
+        print("❌ Missing BOT_TOKEN or CHAT_ID environment variables.")
+        exit(1)
+
+    # === Setup Logging ===
+    logging.basicConfig(
+        filename=LOG_FILE,
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
+
+except Exception as e:
+    print(f"❌ Startup error: {e}")
+    exit(1)
 
 # === Telegram Alert Function ===
 def send_telegram_alert(bot_token, chat_id, message):
@@ -279,6 +289,7 @@ async def run_with_retry(signal_cache, max_iterations=24):
 if __name__ == "__main__":
     signal_cache = {}
     asyncio.run(run_with_retry(signal_cache, max_iterations=24))
+
 
 
 
