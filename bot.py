@@ -59,7 +59,6 @@ async def connect_with_retry(url, retries=5, delay=5):
 # === Fetch Hot Perpetual Pairs ===
 def get_hot_perpetual_symbols(limit=MAX_PAIRS):
     print("Fetching hot perpetual symbols from Binance...")
-
     url = "https://fapi.binance.com/fapi/v1/ticker/24hr"
     try:
         response = requests.get(url)
@@ -72,10 +71,12 @@ def get_hot_perpetual_symbols(limit=MAX_PAIRS):
             print("No data received from Binance.")
     except Exception as e:
         logging.error(f"Error fetching Binance data: {e}")
+        print(f"Error fetching Binance data: {e}")
         return []
 
     if not isinstance(data, list):
         logging.error("Unexpected response format from Binance API")
+        print(f"Unexpected response format: {type(data)}")
         return []
 
     sorted_by_volume = sorted(data, key=lambda x: float(x['quoteVolume']), reverse=True)
@@ -88,8 +89,12 @@ def get_hot_perpetual_symbols(limit=MAX_PAIRS):
     top_losers = [d['symbol'].lower() for d in sorted_by_loss if d['symbol'].endswith('USDT')][:limit]
 
     combined = list(set(top_volume + top_gainers + top_losers))
-
     print(f"Fetched {len(combined)} symbols.")
+
+    if not combined:
+        print('⚠️ No symbols found. Using fallback symbols.')
+        combined = ['btcusdt', 'ethusdt']
+
     return combined
 
 # === Fetch Historical Candles ===
@@ -305,6 +310,7 @@ async def run_bot():
 # === Run the bot ===
 if __name__ == "__main__":
     asyncio.run(run_bot())
+
 
 
 
