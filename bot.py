@@ -264,34 +264,36 @@ async def handle_stream(symbol, signal_cache):
                 print(f"[{symbol}] Signal cached.")
 
 # === Main Async Runner with Retry Logic ===
-async def run_with_retry(signal_cache, max_iterations=24):
-    print("Starting bot run...")
+async def stream_manager(signal_cache, active_symbols):
+    tasks = {}
+    while True:
+        for symbol in active_symbols.copy():
+            if symbol not in tasks or tasks[symbol].done():
+                print(f"[{symbol}] Starting stream task...")
+                tasks[symbol] = asyncio.create_task(handle_stream(symbol, signal_cache))
+        await asyncio.sleep(10)  # Check for new symbols every 10 seconds
 
-    iteration = 0
-    while iteration < max_iterations:
-        print(f"Starting iteration {iteration + 1}...")
-
-        hot_symbols = get_hot_perpetual_symbols()
-        print(f"Streaming hot pairs: {hot_symbols}")
-
-        MAX_STREAMS = 10
-        tasks = []
-        for i, symbol in enumerate(hot_symbols):
-            if i >= MAX_STREAMS:
-                break
-            tasks.append(handle_stream(symbol, signal_cache))
-
-        await asyncio.gather(*tasks)
-        iteration += 1
-        print(f"Iteration {iteration} done. Sleeping for {REFRESH_INTERVAL}s ...")
+async def symbol_refresher(active_symbols):
+    while True:
+        print("Refreshing hot symbols...")
+        new_symbols = get_hot_perpetual_symbols()
+        active_symbols.clear()
+        active_symbols.update(new_symbols[:10])  # Limit to MAX_STREAMS
+        print(f"Updated active symbols: {active_symbols}")
         await asyncio.sleep(REFRESH_INTERVAL)
 
-    print("One day run complete, exiting.")
+async def run_bot():
+    signal_cache = {}
+    active_symbols = set()
+    await asyncio.gather(
+        stream_manager(signal_cache, active_symbols),
+        symbol_refresher(active_symbols)
+    )
 
 # === Run the bot ===
 if __name__ == "__main__":
-    signal_cache = {}
-    asyncio.run(run_with_retry(signal_cache, max_iterations=24))
+    asyncio.run(run_bot())
+
 
 
 
