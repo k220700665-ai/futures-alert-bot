@@ -93,7 +93,7 @@ def get_hot_perpetual_symbols(limit=MAX_PAIRS):
     return combined
 
 # === Fetch Historical Candles ===
-def fetch_historical_klines(symbol, interval='1m', limit=100):
+def fetch_historical_klines(symbol, interval='15m', limit=100):
     url = "https://fapi.binance.com/fapi/v1/klines"
     params = {'symbol': symbol.upper(), 'interval': interval, 'limit': limit}
     response = requests.get(url, params=params)
@@ -147,7 +147,7 @@ def evaluate_signal(df, funding_rate, symbol):
     bb = ta.volatility.BollingerBands(df['close'], window=20, window_dev=2)
     df['bb_upper'] = bb.bollinger_hband()
     df['bb_lower'] = bb.bollinger_lband()
-    df['avg_volume'] = df['volume'].rolling(window=20).mean()
+    df['avg_volume'] = df['volume'].rolling(window=16).mean()
     df['volume_spike'] = df['volume'] > 1.5 * df['avg_volume']
     df['volume_drop'] = df['volume'] < 0.5 * df['avg_volume']
     N = 10
@@ -217,7 +217,7 @@ def evaluate_signal(df, funding_rate, symbol):
 
 # === WebSocket Handler ===
 async def handle_stream(symbol, signal_cache):
-    url = f"wss://fstream.binance.com/ws/{symbol}@kline_1m"
+    url = f"wss://fstream.binance.com/ws/{symbol}@kline_15m"
 
     print(f"[{symbol}] Fetching historical candles...")
     df = fetch_historical_klines(symbol)
@@ -298,6 +298,7 @@ async def run_bot():
 # === Run the bot ===
 if __name__ == "__main__":
     asyncio.run(run_bot())
+
 
 
 
