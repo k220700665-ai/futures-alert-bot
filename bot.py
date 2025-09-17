@@ -13,7 +13,7 @@ import os
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 LOG_FILE = "hot_stream_signals.log"
-REFRESH_INTERVAL = 6 * 60 * 60  # 6 hours in seconds
+REFRESH_INTERVAL = 3600  # 1 hours in seconds
 MAX_PAIRS = 50
 
 # === Setup Logging ===
@@ -205,13 +205,13 @@ def fetch_historical_klines(symbol, interval='1m', limit=100):
 # === Retry Logic ===
 import websockets
 
-async def main(signalcache, max_iterations=4):
+async def main(signalcache, max_iterations=24):
     iteration = 0
     while iteration < max_iterations:
         hotsymbols = gethotperpetualsymbols(limit=MAXPAIRS)
         print(f"Streaming hot pairs {hotsymbols}")
-        MAXSTREAMS = 10  # concurrency limit, adjust if needed
-
+        MAXSTREAMS = 10  # concurrency limit
+        
         tasks = []
         for i, symbol in enumerate(hotsymbols):
             if i >= MAXSTREAMS:
@@ -224,11 +224,11 @@ async def main(signalcache, max_iterations=4):
         print(f"Iteration {iteration} done. Sleeping for {REFRESHINTERVAL}s ...")
         await asyncio.sleep(REFRESHINTERVAL)
 
-    print("Max iterations reached, exiting main loop.")
+    print("One day run complete, exiting.")
 
 if __name__ == "__main__":
     signalcache = {}
-    asyncio.run(main(signalcache, max_iterations=4))  # Adjust iteration count as needed
+    asyncio.run(main(signalcache, max_iterations=24))  # 24 iterations of 1 hour = 1 day run
 
 
 # === WebSocket Handler ===
@@ -290,6 +290,7 @@ async def main():
 # === Run the bot ===
 # Uncomment the line below to run in VSCode
 asyncio.run(main())
+
 
 
 
