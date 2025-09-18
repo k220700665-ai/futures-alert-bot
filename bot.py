@@ -98,7 +98,7 @@ def get_hot_perpetual_symbols(limit=MAX_PAIRS):
     return combined
 
 # === Fetch Historical Candles ===
-def fetch_historical_klines(symbol, interval='15m', limit=100):
+def fetch_historical_klines(symbol, interval='5m', limit=100):
     url = "https://fapi.binance.com/fapi/v1/klines"
     params = {'symbol': symbol.upper(), 'interval': interval, 'limit': limit}
     response = requests.get(url, params=params)
@@ -115,7 +115,7 @@ def fetch_historical_klines(symbol, interval='15m', limit=100):
     ])
     return df
 
-def fetch_higher_timeframe_klines(symbol, interval='1h', limit=50):
+def fetch_higher_timeframe_klines(symbol, interval='15m', limit=50):
     url = "https://fapi.binance.com/fapi/v1/klines"
     params = {'symbol': symbol.upper(), 'interval': interval, 'limit': limit}
     response = requests.get(url, params=params)
@@ -311,6 +311,7 @@ async def run_bot():
 # === Run the bot ===
 if __name__ == "__main__":
     asyncio.run(run_bot())
+
 
 
 
