@@ -60,8 +60,12 @@ async def connect_with_retry(url, retries=5, delay=5):
 def get_hot_perpetual_symbols(limit=MAX_PAIRS):
     print("Fetching hot perpetual symbols from Binance...")
     url = "https://fapi.binance.com/fapi/v1/ticker/24hr"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
+        "Accept": "application/json"
+    }
     try:
-        response = requests.get(url)
+        response = requests.get(url, headers=headers)
         response.raise_for_status()
         data = response.json()
         print(f"Raw Binance data length: {len(data)}")
@@ -310,6 +314,7 @@ async def run_bot():
 # === Run the bot ===
 if __name__ == "__main__":
     asyncio.run(run_bot())
+
 
 
 
