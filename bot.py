@@ -260,7 +260,6 @@ async def handle_stream(symbol, signal_cache):
             print(f"[{symbol}] Signal evaluated: {signal}")
 
             if signal in ["LONG", "SHORT"] and signal_cache.get(symbol) != signal:
-                now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 alert_msg = (
                     f"📢 {symbol.upper()} Signal: {signal}\n"
                     f"Entry Price: {entry_price:.4f}\n"
@@ -311,6 +310,7 @@ async def run_bot():
 # === Run the bot ===
 if __name__ == "__main__":
     asyncio.run(run_bot())
+
 
 
 
